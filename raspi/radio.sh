@@ -2,13 +2,12 @@
 
 default_list="http://www.bbc.co.uk/worldservice/meta/live/mp3/eneuk.pls"
 radio=$1
-duration=20
+duration=2
 
 if [ $# -lt 1 ]; then
  radio=$default_list
 fi
 
-play_for_period() {
 if [ $# -lt 1 ]; then
  echo "Invalid arguments!"
  echo "Usage: <duration_in_minutes>"
@@ -21,27 +20,20 @@ if [ $1 -lt 1 ]; then
   exit 1
 fi
 
-duration_in_seconds=$(($1 * 60))
-start_time=$(date +%s)
-end_time=$(expr $start_time + $duration_in_seconds)
+#duration in seconds. The argument value is in minutes.
+duration=$(($1 * 60))
 
-echo "About to run script $script for $1 minutes."
-echo "Script will run from $(date --date=@$start_time) to $(date --date=@$end_time)"
-
-while [ $start_time -lt $end_time ]; do
-  play_simple
-  let start_time=$(date +%s)
-done
-}
-
-play_simple(){
-  echo "playing radio $radio"
-  mplayer -cache 5120 -cache-min 15 -playlist $radio
-}
+#Add additional 30 seconds for buffering
+echo "About to play radio for $1 minutes."
 
 
-play(){
- play_for_period $duration 
-}
+echo "playing radio $radio"
+mplayer -noconsolecontrols -vo null -really-quiet -cache 2048 -cache-min 15 -playlist $radio &
+pid=$!
+echo "Running in the background with pid $pid"
+echo $bg_pid > ~/mplayer.pid
+sleep $duration
+echo "Time is up. Stopping radio pid=$pid..."
+kill $pid
 
-play
+
