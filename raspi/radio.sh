@@ -1,7 +1,7 @@
 #!/bin/bash
 
 default_list="http://www.bbc.co.uk/worldservice/meta/live/mp3/eneuk.pls"
-radio=$1
+radio=$default_list
 duration=2
 
 if [ $# -lt 1 ]; then
@@ -28,12 +28,14 @@ echo "About to play radio for $1 minutes."
 
 
 echo "playing radio $radio"
+
 mplayer -noconsolecontrols -vo null -really-quiet -cache 2048 -cache-min 15 -playlist $radio &
+#mplayer -noconsolecontrols -vo null  -cache 2048 -cache-min 15 -playlist $radio &
 pid=$!
 echo "Running in the background with pid $pid"
 echo $bg_pid > ~/mplayer.pid
 sleep $duration
 echo "Time is up. Stopping radio pid=$pid..."
 kill $pid
-
+#killall mplayer
 
