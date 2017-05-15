@@ -17,16 +17,33 @@ if test -z $2; then
   exit 1
 fi
 
-duration_in_seconds=$(($1 * 60))
-start_time=$(date +%s)
-end_time=$(expr $start_time + $duration_in_seconds)
 
-command=$2
+function play_by_duration {
+  if [ $# -lt 2 ]; then
+	  echo "Missing arguments." >&2
+	  echo "Usage: <duration_in_minutes> <command>"
+	  exit 1
+  fi
 
-echo "About to run command $command for $1 minutes."
-echo "Script will run from $(date --date=@$start_time) to $(date --date=@$end_time)"
+  local duration_in_seconds=$(($1 * 60))
+  local start_time=$(date +%s)
+  local end_time=$(expr $start_time + $duration_in_seconds)
 
-while [ $start_time -lt $end_time ]; do
-  `$command`
-  let start_time=$(date +%s)
-done
+  command="$2"
+
+  echo "About to run command $command for $1 minutes."
+  echo "Script will run from $(date --date=@$start_time) to $(date --date=@$end_time)"
+
+
+  $command &
+  pid=$!
+  echo "Running in the background with pid $pid"
+  sleep $duration_in_seconds
+
+  echo "Time is up. Stopping command..."
+  kill $pid
+}
+
+
+#execute command
+play_by_duration $1 "$2"
